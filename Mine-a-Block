@@ -18,14 +18,18 @@ local function isXray(part) for _,c in ipairs(xrayColors) do if part.Color==c th
 local function updateXray()
     for _,o in pairs(workspace:GetDescendants()) do
         if o:IsA("BasePart") and isXray(o) then
-            o.LocalTransparencyModifier = xrayEnabled and 0.8 or 0
+            o.LocalTransparencyModifier = xrayEnabled and 1 or 0
         end
     end
 end
 
 local espEnabled = true
 local espModels = {}
-local rarityColors = {["Legendary"]=Color3.fromRGB(0,255,0),["Mythic"]=Color3.fromRGB(0,255,0),["Divine"]=Color3.fromRGB(0,255,0)}
+local rarityColors = {
+    ["Legendary"] = Color3.fromRGB(255,215,0),
+    ["Mythic"] = Color3.fromRGB(148,0,211),
+    ["Divine"] = Color3.fromRGB(0,191,255)
+}
 local function createESP(model, part, rarity, name)
     if espModels[model] then return end
     if not part then return end
@@ -42,7 +46,7 @@ local function createESP(model, part, rarity, name)
     local label = Instance.new("TextLabel",billboard)
     label.Size = UDim2.new(1,0,1,0)
     label.BackgroundTransparency=1
-    label.TextColor3=rarityColors[rarity] or Color3.new(0,1,0)
+    label.TextColor3=rarityColors[rarity] or Color3.new(1,1,1)
     label.TextStrokeTransparency=0
     label.Text=name or "Unknown"
     label.TextScaled=true
