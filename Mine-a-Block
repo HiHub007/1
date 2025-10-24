@@ -18,7 +18,7 @@ local function isXray(part) for _,c in ipairs(xrayColors) do if part.Color==c th
 local function updateXray()
     for _,o in pairs(workspace:GetDescendants()) do
         if o:IsA("BasePart") and isXray(o) then
-            o.LocalTransparencyModifier = xrayEnabled and 1 or 0
+            o.LocalTransparencyModifier = xrayEnabled and 0.8 or 0
         end
     end
 end
@@ -127,4 +127,4 @@ end)
 
 workspace.DescendantAdded:Connect(function(o)
     if o:IsA("BasePart") and isXray(o) then o.LocalTransparencyModifier = xrayEnabled and 1 or 0 end
-end)
+end
