@@ -127,4 +127,4 @@ end)
 
 workspace.DescendantAdded:Connect(function(o)
     if o:IsA("BasePart") and isXray(o) then o.LocalTransparencyModifier = xrayEnabled and 1 or 0 end
-end
+end)
