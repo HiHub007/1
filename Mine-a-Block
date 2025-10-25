@@ -17,21 +17,32 @@ local function createMainGUI()
 end
 local mainGui = createMainGUI()
 
--- ====================== ปุ่มเปิด/ปิด GUI ======================
-local toggleBtn = Instance.new("TextButton", mainGui)
-toggleBtn.Size = UDim2.new(0,60,0,40)
-toggleBtn.Position = UDim2.new(0,10,0,10)
-toggleBtn.Text = "GUI"
-toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+-- ====================== Toggle Button (ตรงกลางข้างบน) ======================
+local toggleBtn = mainGui:FindFirstChild("ToggleBtn")
+if not toggleBtn then
+	toggleBtn = Instance.new("TextButton")
+	toggleBtn.Name = "ToggleBtn"
+	toggleBtn.Size = UDim2.new(0,50,0,50)
+	toggleBtn.Position = UDim2.new(0.5, -25, 0, 10) -- ตรงกลางด้านบน
+	toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	toggleBtn.Text = "GUI"
+	toggleBtn.Parent = mainGui
+end
 
-local frame = Instance.new("Frame", mainGui)
-frame.Size = UDim2.new(0,240,0,360)
-frame.Position = UDim2.new(0,10,0,60)
-frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-frame.Visible = false
-frame.Active = true
-frame.Draggable = true
+-- ====================== Main Frame (ปรับให้พอดี) ======================
+local frame = mainGui:FindFirstChild("MainFrame")
+if not frame then
+	frame = Instance.new("Frame")
+	frame.Name = "MainFrame"
+	frame.Size = UDim2.new(0,220,0,240) -- ปรับเล็กลงให้พอดีกับปุ่ม
+	frame.Position = UDim2.new(0.5, -110, 0, 70) -- ข้างใต้ปุ่ม
+	frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	frame.Visible = false
+	frame.Active = true
+	frame.Draggable = true
+	frame.Parent = mainGui
+end
 
 local guiOpen = false
 toggleBtn.MouseButton1Click:Connect(function()
@@ -39,7 +50,7 @@ toggleBtn.MouseButton1Click:Connect(function()
 	frame.Visible = guiOpen
 end)
 
--- ====================== XRay ======================
+-- ====================== XRay (เฉพาะ Workspace.Mid.Blocks) ======================
 local xrayColors = {
 	Color3.fromRGB(108,88,75),Color3.fromRGB(120,97,83),
 	Color3.fromRGB(75,151,75),Color3.fromRGB(75,151,75),
@@ -51,7 +62,6 @@ local xrayColors = {
 	Color3.fromRGB(248,248,248),Color3.fromRGB(220,220,220),
 	Color3.fromRGB(200,200,200),Color3.fromRGB(72,95,180)
 }
-
 local xrayEnabled = false
 local function isXray(part)
 	for _, c in ipairs(xrayColors) do
@@ -60,9 +70,13 @@ local function isXray(part)
 	return false
 end
 local function updateXray()
-	for _, o in pairs(Workspace:GetDescendants()) do
-		if o:IsA("BasePart") and isXray(o) then
-			o.LocalTransparencyModifier = xrayEnabled and 0.8 or 0
+	local midFolder = Workspace:FindFirstChild("Mid")
+	if not midFolder then return end
+	local blocksFolder = midFolder:FindFirstChild("Blocks")
+	if not blocksFolder then return end
+	for _, part in ipairs(blocksFolder:GetDescendants()) do
+		if part:IsA("BasePart") and isXray(part) then
+			part.LocalTransparencyModifier = xrayEnabled and 0.8 or 0
 		end
 	end
 end
@@ -73,8 +87,8 @@ Workspace.DescendantAdded:Connect(function(o)
 end)
 
 local xrayBtn = Instance.new("TextButton", frame)
-xrayBtn.Size = UDim2.new(0,200,0,40)
-xrayBtn.Position = UDim2.new(0,20,0,10)
+xrayBtn.Size = UDim2.new(0,180,0,35) -- ปรับเล็กลงให้พอดี
+xrayBtn.Position = UDim2.new(0.5, -90, 0, 10)
 xrayBtn.Text = "XRay: OFF"
 xrayBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 xrayBtn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -103,7 +117,7 @@ local function createESP(model, part, rarity, name)
 	box.Color3 = rarityColors[rarity] or part.Color
 
 	local billboard = Instance.new("BillboardGui", part)
-	billboard.Size = UDim2.new(0,100,0,30)
+	billboard.Size = UDim2.new(0,90,0,25) -- ปรับขนาดให้พอดี
 	billboard.Adornee = part
 	billboard.AlwaysOnTop = true
 
@@ -125,8 +139,8 @@ local function removeAllESP()
 	espModels = {}
 end
 local espBtn = Instance.new("TextButton", frame)
-espBtn.Size = UDim2.new(0,200,0,40)
-espBtn.Position = UDim2.new(0,20,0,60)
+espBtn.Size = UDim2.new(0,180,0,35)
+espBtn.Position = UDim2.new(0.5, -90, 0, 55)
 espBtn.Text = "ESP: ON"
 espBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 espBtn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -139,8 +153,8 @@ end)
 -- ====================== Save/Warp ======================
 local savedCFrame
 local saveBtn = Instance.new("TextButton", frame)
-saveBtn.Size = UDim2.new(0,200,0,40)
-saveBtn.Position = UDim2.new(0,20,0,110)
+saveBtn.Size = UDim2.new(0,180,0,35)
+saveBtn.Position = UDim2.new(0.5, -90, 0, 100)
 saveBtn.Text = "Save Spawn"
 saveBtn.BackgroundColor3 = Color3.fromRGB(50,150,50)
 saveBtn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -158,8 +172,8 @@ saveBtn.MouseButton1Click:Connect(function()
 end)
 
 local warpBtn = Instance.new("TextButton", frame)
-warpBtn.Size = UDim2.new(0,200,0,40)
-warpBtn.Position = UDim2.new(0,20,0,160)
+warpBtn.Size = UDim2.new(0,180,0,35)
+warpBtn.Position = UDim2.new(0.5, -90, 0, 145)
 warpBtn.Text = "Warp Spawn"
 warpBtn.BackgroundColor3 = Color3.fromRGB(50,50,150)
 warpBtn.TextColor3 = Color3.fromRGB(255,255,255)
