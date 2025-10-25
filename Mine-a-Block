@@ -52,15 +52,16 @@ end)
 
 -- ====================== XRay (เฉพาะ Workspace.Mid.Blocks) ======================
 local xrayColors = {
-	Color3.fromRGB(108,88,75),Color3.fromRGB(120,97,83),
-	Color3.fromRGB(75,151,75),Color3.fromRGB(75,151,75),
-	Color3.fromRGB(100,100,100),Color3.fromRGB(89,18,18),
-	Color3.fromRGB(132,26,26),Color3.fromRGB(109,22,22),
-	Color3.fromRGB(58,117,58),Color3.fromRGB(58,117,58),
-	Color3.fromRGB(65,130,65),Color3.fromRGB(142,110,78),
+	Color3.fromRGB(108,88,75), Color3.fromRGB(120,97,83),
+	Color3.fromRGB(75,151,75), Color3.fromRGB(75,151,75),
+	Color3.fromRGB(100,100,100), Color3.fromRGB(89,18,18),
+	Color3.fromRGB(132,26,26), Color3.fromRGB(109,22,22),
+	Color3.fromRGB(58,117,58), Color3.fromRGB(58,117,58),
+	Color3.fromRGB(65,130,65), Color3.fromRGB(142,110,78),
 	Color3.fromRGB(188,169,136),
-	Color3.fromRGB(248,248,248),Color3.fromRGB(220,220,220),
-	Color3.fromRGB(200,200,200),Color3.fromRGB(72,95,180)
+	Color3.fromRGB(248,248,248), Color3.fromRGB(220,220,220),
+	Color3.fromRGB(200,200,200), Color3.fromRGB(72,95,180),
+	Color3.fromRGB(247,213,144), Color3.fromRGB(247,192,124), Color3.fromRGB(247,233,163)
 }
 local xrayEnabled = false
 local function isXray(part)
