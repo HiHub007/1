@@ -20,15 +20,14 @@ local mainGui = createMainGUI()
 -- ====================== ปุ่มเปิด/ปิด GUI ======================
 local toggleBtn = Instance.new("TextButton", mainGui)
 toggleBtn.Size = UDim2.new(0,60,0,40)
-toggleBtn.Position = UDim2.new(0,10,0,10) -- ซ้ายบน
+toggleBtn.Position = UDim2.new(0,10,0,10)
 toggleBtn.Text = "GUI"
 toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
 
--- ====================== GUI หลัก ======================
 local frame = Instance.new("Frame", mainGui)
-frame.Size = UDim2.new(0,240,0,320)
-frame.Position = UDim2.new(0,10,0,60) -- อยู่ใต้ปุ่ม
+frame.Size = UDim2.new(0,240,0,360)
+frame.Position = UDim2.new(0,10,0,60)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.Visible = false
 frame.Active = true
@@ -48,17 +47,20 @@ local xrayColors = {
 	Color3.fromRGB(132,26,26),Color3.fromRGB(109,22,22),
 	Color3.fromRGB(58,117,58),Color3.fromRGB(58,117,58),
 	Color3.fromRGB(65,130,65),Color3.fromRGB(142,110,78),
-	Color3.fromRGB(188,169,136)
+	Color3.fromRGB(188,169,136),
+	Color3.fromRGB(248,248,248),Color3.fromRGB(220,220,220),
+	Color3.fromRGB(200,200,200),Color3.fromRGB(72,95,180)
 }
+
 local xrayEnabled = false
 local function isXray(part)
-	for _,c in ipairs(xrayColors) do
+	for _, c in ipairs(xrayColors) do
 		if part.Color == c then return true end
 	end
 	return false
 end
 local function updateXray()
-	for _,o in pairs(Workspace:GetDescendants()) do
+	for _, o in pairs(Workspace:GetDescendants()) do
 		if o:IsA("BasePart") and isXray(o) then
 			o.LocalTransparencyModifier = xrayEnabled and 0.8 or 0
 		end
@@ -69,6 +71,7 @@ Workspace.DescendantAdded:Connect(function(o)
 		o.LocalTransparencyModifier = xrayEnabled and 0.8 or 0
 	end
 end)
+
 local xrayBtn = Instance.new("TextButton", frame)
 xrayBtn.Size = UDim2.new(0,200,0,40)
 xrayBtn.Position = UDim2.new(0,20,0,10)
@@ -84,11 +87,10 @@ end)
 -- ====================== ESP ======================
 local espEnabled = true
 local espModels = {}
-local modelConnections = {}
 local rarityColors = {
-	["Legendary"] = Color3.fromRGB(193, 190, 66),
-	["Mythic"] = Color3.fromRGB(255, 0, 0),
-	["Divine"] = Color3.fromRGB(207, 96, 36)
+	["Legendary"] = Color3.fromRGB(193,190,66),
+	["Mythic"] = Color3.fromRGB(255,0,0),
+	["Divine"] = Color3.fromRGB(207,96,36)
 }
 local function createESP(model, part, rarity, name)
 	if espModels[model] then return end
@@ -104,6 +106,7 @@ local function createESP(model, part, rarity, name)
 	billboard.Size = UDim2.new(0,100,0,30)
 	billboard.Adornee = part
 	billboard.AlwaysOnTop = true
+
 	local label = Instance.new("TextLabel", billboard)
 	label.Size = UDim2.new(1,0,1,0)
 	label.BackgroundTransparency = 1
@@ -112,20 +115,7 @@ local function createESP(model, part, rarity, name)
 	label.Text = name or "Unknown"
 	label.TextScaled = true
 
-	local conn
-	conn = model.AncestryChanged:Connect(function(_, parent)
-		if not parent then
-			if box then box:Destroy() end
-			if label then label:Destroy() end
-			espModels[model] = nil
-			if modelConnections[model] then
-				modelConnections[model]:Disconnect()
-				modelConnections[model] = nil
-			end
-		end
-	end)
-	espModels[model] = {box=box, label=label}
-	modelConnections[model] = conn
+	espModels[model] = {box=box,label=label}
 end
 local function removeAllESP()
 	for _,data in pairs(espModels) do
@@ -133,26 +123,6 @@ local function removeAllESP()
 		if data.label then data.label:Destroy() end
 	end
 	espModels = {}
-	for _,conn in pairs(modelConnections) do
-		conn:Disconnect()
-	end
-	modelConnections = {}
-end
-local function scanBlocks()
-	local midFolder = Workspace:FindFirstChild("Mid")
-	if not midFolder then return end
-	local blocksFolder = midFolder:FindFirstChild("Blocks")
-	if not blocksFolder then return end
-	for _,model in ipairs(blocksFolder:GetChildren()) do
-		if model:IsA("Model") then
-			local rarity = model:GetAttribute("Rarity")
-			local name = model:GetAttribute("Name")
-			if rarity and name and rarityColors[rarity] then
-				local part = model:FindFirstChild("Top") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-				if part then createESP(model, part, rarity, name) end
-			end
-		end
-	end
 end
 local espBtn = Instance.new("TextButton", frame)
 espBtn.Size = UDim2.new(0,200,0,40)
@@ -201,17 +171,30 @@ warpBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- ====================== Heartbeat ======================
+-- ====================== Heartbeat ESP ======================
 local lastCheck = 0
 local checkInterval = 3
 RunService.Heartbeat:Connect(function()
 	local now = tick()
 	if now - lastCheck < checkInterval then return end
 	lastCheck = now
-	if espEnabled then scanBlocks() end
-end)
-
--- ====================== Respawn Persistent ======================
-Players.LocalPlayer.CharacterAdded:Connect(function(char)
-	mainGui = createMainGUI()
+	if espEnabled then
+		local midFolder = Workspace:FindFirstChild("Mid")
+		if not midFolder then return end
+		local blocksFolder = midFolder:FindFirstChild("Blocks")
+		if not blocksFolder then return end
+		for _,model in ipairs(blocksFolder:GetChildren()) do
+			if model:IsA("Model") then
+				local rarity = model:GetAttribute("Rarity")
+				local name = model:GetAttribute("Name")
+				if rarity and name and rarityColors[rarity] then
+					local part = model:FindFirstChild("Top") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+					if part then createESP(model, part, rarity, name) end
+				end
+				model.AncestryChanged:Connect(function(_,parent)
+					if not parent then removeAllESP() end
+				end)
+			end
+		end
+	end
 end)
