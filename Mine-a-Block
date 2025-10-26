@@ -36,8 +36,8 @@ local frame = mainGui:FindFirstChild("MainFrame")
 if not frame then
 	frame = Instance.new("Frame")
 	frame.Name = "MainFrame"
-	frame.Size = UDim2.new(0,220,0,240)
-	frame.Position = UDim2.new(0.5, -110, 0, 70)
+	frame.Size = UDim2.new(0,240,0,280)
+	frame.Position = UDim2.new(0.5, -120, 0, 70)
 	frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 	frame.Visible = false
 	frame.Active = true
@@ -61,8 +61,7 @@ local xrayColors = {
 	Color3.fromRGB(65,130,65), Color3.fromRGB(142,110,78),
 	Color3.fromRGB(188,169,136),
 	Color3.fromRGB(248,248,248), Color3.fromRGB(220,220,220),
-	Color3.fromRGB(200,200,200), Color3.fromRGB(72,95,180),
-	Color3.fromRGB(247,213,144), Color3.fromRGB(247,192,124), Color3.fromRGB(247,233,163)
+	Color3.fromRGB(200,200,200), Color3.fromRGB(72,95,180)
 }
 local xrayEnabled = false
 local function isXray(part)
@@ -89,8 +88,8 @@ Workspace.DescendantAdded:Connect(function(o)
 end)
 
 local xrayBtn = Instance.new("TextButton", frame)
-xrayBtn.Size = UDim2.new(0,180,0,35)
-xrayBtn.Position = UDim2.new(0.5, -90, 0, 10)
+xrayBtn.Size = UDim2.new(0,200,0,35)
+xrayBtn.Position = UDim2.new(0.5, -100, 0, 10)
 xrayBtn.Text = "XRay: OFF"
 xrayBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 xrayBtn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -141,8 +140,8 @@ local function removeAllESP()
 	espModels = {}
 end
 local espBtn = Instance.new("TextButton", frame)
-espBtn.Size = UDim2.new(0,180,0,35)
-espBtn.Position = UDim2.new(0.5, -90, 0, 55)
+espBtn.Size = UDim2.new(0,200,0,35)
+espBtn.Position = UDim2.new(0.5, -100, 0, 55)
 espBtn.Text = "ESP: ON"
 espBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 espBtn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -179,3 +178,116 @@ RunService.Heartbeat:Connect(function()
 		end
 	end
 end)
+
+-- ====================== Save/Warp ======================
+local savedCFrame
+local saveBtn = Instance.new("TextButton", frame)
+saveBtn.Size = UDim2.new(0,200,0,35)
+saveBtn.Position = UDim2.new(0.5, -100, 0, 100)
+saveBtn.Text = "Save Spawn"
+saveBtn.BackgroundColor3 = Color3.fromRGB(50,150,50)
+saveBtn.TextColor3 = Color3.fromRGB(255,255,255)
+saveBtn.MouseButton1Click:Connect(function()
+	local character = Player.Character
+	if character then
+		local hrp = character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			savedCFrame = hrp.CFrame
+			saveBtn.Text = "Spawn Saved!"
+			wait(1)
+			saveBtn.Text = "Save Spawn"
+		end
+	end
+end)
+
+local warpBtn = Instance.new("TextButton", frame)
+warpBtn.Size = UDim2.new(0,200,0,35)
+warpBtn.Position = UDim2.new(0.5, -100, 0, 145)
+warpBtn.Text = "Warp Spawn"
+warpBtn.BackgroundColor3 = Color3.fromRGB(50,50,150)
+warpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+warpBtn.MouseButton1Click:Connect(function()
+	local character = Player.Character
+	if character and savedCFrame then
+		local hrp = character:FindFirstChild("HumanoidRootPart")
+		if hrp then hrp.CFrame = savedCFrame end
+	end
+end)
+
+-- ====================== ALERT ✅ V5 PRO ======================
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local alertEnabled = true
+local alerted = {}
+local lastSound = 0
+local cooldown = 2 -- cooldown 2 วิ
+local alertTargets = {
+	["Grass"] = false,
+	["Lucky Block"] = true,
+	["Diamond Lucky Block"] = true,
+	["Beacon Crate"] = true,
+}
+
+local alertBtn = Instance.new("TextButton", frame)
+alertBtn.Size = UDim2.new(0,200,0,35)
+alertBtn.Position = UDim2.new(0.5, -100, 0, 190)
+alertBtn.Text = "ALERT: ON"
+alertBtn.BackgroundColor3 = Color3.fromRGB(150,50,50)
+alertBtn.TextColor3 = Color3.new(1,1,1)
+alertBtn.Parent = frame
+
+alertBtn.MouseButton1Click:Connect(function()
+	alertEnabled = not alertEnabled
+	alertBtn.Text = "ALERT: " .. (alertEnabled and "ON" or "OFF")
+end)
+
+local function playAlert()
+	local s = Instance.new("Sound")
+	s.SoundId = "rbxassetid://7695856187"
+	s.Volume = 10
+	s.PlayOnRemove = true
+	s.Parent = SoundService
+	s:Destroy()
+end
+
+local function safeName(obj)
+	local ok,value = pcall(function() return obj:GetAttribute("Name") end)
+	if ok and typeof(value)=="string" and #value>0 then return value end
+	if obj:IsA("BasePart") then
+		local m = obj:FindFirstAncestorOfClass("Model")
+		if m then return m.Name end
+	end
+	return obj.Name
+end
+
+local function tryAlert(obj)
+	if not alertEnabled then return end
+	if alerted[obj] then return end
+	if obj:IsDescendantOf(Character) or obj:IsDescendantOf(Player.Backpack) then return end
+	local mid = Workspace:FindFirstChild("Mid")
+	if not mid or not obj:IsDescendantOf(mid) then return end
+	local name = safeName(obj)
+	if alertTargets[name] then
+		alerted[obj] = true
+		local now = os.clock()
+		if now - lastSound >= cooldown then
+			lastSound = now
+			playAlert()
+			print("🔔 ALERT:", name)
+		else
+			print("⚪ SKIP ALERT (COOLDOWN)")
+		end
+	end
+end
+
+for _, inst in ipairs(Workspace:GetDescendants()) do
+	if inst:IsA("Model") or inst:IsA("BasePart") then
+		task.defer(tryAlert, inst)
+	end
+end
+Workspace.DescendantAdded:Connect(function(inst)
+	if inst:IsA("Model") or inst:IsA("BasePart") then
+		task.defer(tryAlert, inst)
+	end
+end)
+
+print("✅ Script Loaded Successfully")
