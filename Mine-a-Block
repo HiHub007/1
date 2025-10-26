@@ -197,7 +197,7 @@ saveBtn.MouseButton1Click:Connect(function()
 		local hrp = character:FindFirstChild("HumanoidRootPart")
 		if hrp then
 			savedCFrame = hrp.CFrame
-			saveBtn.Text = "Spawn Saved! บ่นไรกูเซฟแล้ว khsalkjfd;ilkasfsda;lfjasd;ljhfps;ladfj;lsdakfl;ksdafads"
+			saveBtn.Text = "Spawn Saved!"
 			task.delay(1.2, function()
 				saveBtn.Text = "Save Spawn"
 			end)
