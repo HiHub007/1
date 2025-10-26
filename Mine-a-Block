@@ -1,9 +1,9 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local SoundService = game:GetService("SoundService")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
-local SoundService = game:GetService("SoundService")
 
 -- ====================== Persistent GUI ======================
 local function createMainGUI()
@@ -23,8 +23,8 @@ local toggleBtn = mainGui:FindFirstChild("ToggleBtn")
 if not toggleBtn then
 	toggleBtn = Instance.new("TextButton")
 	toggleBtn.Name = "ToggleBtn"
-	toggleBtn.Size = UDim2.new(0,50,0,50)
-	toggleBtn.Position = UDim2.new(0.5, -25, 0, 10)
+	toggleBtn.Size = UDim2.new(0,60,0,40)
+	toggleBtn.Position = UDim2.new(0.5, -30, 0, 10)
 	toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 	toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
 	toggleBtn.Text = "GUI"
@@ -100,7 +100,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 	updateXray()
 end)
 
--- ====================== ESP ====================== (เดิม)
+-- ====================== ESP ======================
 local espEnabled = true
 local espModels = {}
 local rarityColors = {
@@ -152,126 +152,30 @@ espBtn.MouseButton1Click:Connect(function()
 	if not espEnabled then removeAllESP() end
 end)
 
--- ====================== Save/Warp (เดิม)
-local savedCFrame
-local saveBtn = Instance.new("TextButton", frame)
-saveBtn.Size = UDim2.new(0,180,0,35)
-saveBtn.Position = UDim2.new(0.5, -90, 0, 100)
-saveBtn.Text = "Save Spawn"
-saveBtn.BackgroundColor3 = Color3.fromRGB(50,150,50)
-saveBtn.TextColor3 = Color3.fromRGB(255,255,255)
-saveBtn.MouseButton1Click:Connect(function()
-	local character = Player.Character
-	if character then
-		local hrp = character:FindFirstChild("HumanoidRootPart")
-		if hrp then
-			savedCFrame = hrp.CFrame
-			saveBtn.Text = "Spawn Saved!"
-			wait(1)
-			saveBtn.Text = "Save Spawn"
+-- Heartbeat ESP
+local lastCheck = 0
+local checkInterval = 3
+RunService.Heartbeat:Connect(function()
+	local now = tick()
+	if now - lastCheck < checkInterval then return end
+	lastCheck = now
+	if espEnabled then
+		local midFolder = Workspace:FindFirstChild("Mid")
+		if not midFolder then return end
+		local blocksFolder = midFolder:FindFirstChild("Blocks")
+		if not blocksFolder then return end
+		for _,model in ipairs(blocksFolder:GetChildren()) do
+			if model:IsA("Model") then
+				local rarity = model:GetAttribute("Rarity")
+				local name = model:GetAttribute("Name")
+				if rarity and name and rarityColors[rarity] then
+					local part = model:FindFirstChild("Top") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+					if part then createESP(model, part, rarity, name) end
+				end
+				model.AncestryChanged:Connect(function(_,parent)
+					if not parent then removeAllESP() end
+				end)
+			end
 		end
 	end
 end)
-
-local warpBtn = Instance.new("TextButton", frame)
-warpBtn.Size = UDim2.new(0,180,0,35)
-warpBtn.Position = UDim2.new(0.5, -90, 0, 145)
-warpBtn.Text = "Warp Spawn"
-warpBtn.BackgroundColor3 = Color3.fromRGB(50,50,150)
-warpBtn.TextColor3 = Color3.fromRGB(255,255,255)
-warpBtn.MouseButton1Click:Connect(function()
-	local character = Player.Character
-	if character and savedCFrame then
-		local hrp = character:FindFirstChild("HumanoidRootPart")
-		if hrp then hrp.CFrame = savedCFrame end
-	end
-end)
-
--- ====================== SPECIAL ALERT ✅ V5 PRO ======================
-local Character = Player.Character or Player.CharacterAdded:Wait()
-
-local alertEnabled = true
-local alerted = {}
-local lastSound = 0
-local cooldown = 2 -- ✅ Cooldown เสียง 2 วิ
-
-local alertTargets = {
-	["Grass"] = false,
-	["Lucky Block"] = true,
-	["Diamond Lucky Block"] = true,
-	["Beacon Crate"] = true,
-}
-
-local alertBtn = Instance.new("TextButton", frame)
-alertBtn.Name = "AlertBtn"
-alertBtn.Size = UDim2.new(0,180,0,35)
-alertBtn.Position = UDim2.new(0.5, -90, 0, 190)
-alertBtn.Text = "ALERT: ON"
-alertBtn.BackgroundColor3 = Color3.fromRGB(150,50,50)
-alertBtn.TextColor3 = Color3.new(1,1,1)
-alertBtn.Parent = frame
-
-alertBtn.MouseButton1Click:Connect(function()
-	alertEnabled = not alertEnabled
-	alertBtn.Text = "ALERT: " .. (alertEnabled and "ON" or "OFF")
-end)
-
-local function playAlert()
-	local s = Instance.new("Sound")
-	s.SoundId = "rbxassetid://7695856187"
-	s.Volume = 10
-	s.PlayOnRemove = true
-	s.Parent = SoundService
-	s:Destroy()
-end
-
-local function safeName(obj)
-	local ok,value = pcall(function()
-		return obj:GetAttribute("Name")
-	end)
-	if ok and typeof(value)=="string" and #value>0 then return value end
-
-	if obj:IsA("BasePart") then
-		local m = obj:FindFirstAncestorOfClass("Model")
-		if m then return m.Name end
-	end
-
-	return obj.Name
-end
-
-local function tryAlert(obj)
-	if not alertEnabled then return end
-	if alerted[obj] then return end
-	if obj:IsDescendantOf(Character) or obj:IsDescendantOf(Player.Backpack) then return end
-
-	local mid = Workspace:FindFirstChild("Mid")
-	if not mid or not obj:IsDescendantOf(mid) then return end
-
-	local name = safeName(obj)
-	if alertTargets[name] then
-		alerted[obj] = true
-
-		local now = os.clock()
-		if now - lastSound >= cooldown then
-			lastSound = now
-			playAlert()
-			print("🔔 ALERT:", name)
-		else
-			print("⚪ SKIP ALERT (COOLDOWN)")
-	end
-	end
-end
-
-for _, inst in ipairs(Workspace:GetDescendants()) do
-	if inst:IsA("Model") or inst:IsA("BasePart") then
-		task.defer(tryAlert, inst)
-	end
-end
-
-Workspace.DescendantAdded:Connect(function(inst)
-	if inst:IsA("Model") or inst:IsA("BasePart") then
-		task.defer(tryAlert, inst)
-	end
-end)
-
-print("✅ Script Loaded Successfully")
