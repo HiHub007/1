@@ -103,7 +103,7 @@ xrayBtn.MouseButton1Click:Connect(function()
 	updateXray()
 end)
 
--- ====================== ESP ======================
+-- ====================== ESP (แบบดั้งเดิม) ======================
 local espEnabled = true
 local espModels = {}
 local rarityColors = {
@@ -111,38 +111,27 @@ local rarityColors = {
 	["Mythic"] = Color3.fromRGB(255,0,0),
 	["Divine"] = Color3.fromRGB(207,96,36)
 }
-local function createESP(model, part, rarity, name)
+
+local function createESP(model, part, rarity)
 	if espModels[model] then return end
 	if not part then return end
-	local box = Instance.new("BoxHandleAdornment", part)
+
+	local box = Instance.new("BoxHandleAdornment")
 	box.Adornee = part
 	box.Size = part.Size + Vector3.new(0.1,0.1,0.1)
 	box.Transparency = 0.75
 	box.AlwaysOnTop = true
-	box.Color3 = rarityColors[rarity] or part.Color
+	box.Color3 = rarityColors[rarity] or Color3.new(1,1,1)
+	box.Parent = part
 
-	local billboard = Instance.new("BillboardGui", part)
-	billboard.Size = UDim2.new(0,90,0,25)
-	billboard.Adornee = part
-	billboard.AlwaysOnTop = true
-
-	local label = Instance.new("TextLabel", billboard)
-	label.Size = UDim2.new(1,0,1,0)
-	label.BackgroundTransparency = 1
-	label.TextColor3 = rarityColors[rarity] or Color3.new(1,1,1)
-	label.TextStrokeTransparency = 0
-	label.Text = name or "Unknown"
-	label.TextScaled = true
-
-	espModels[model] = {box=box,label=label}
+	espModels[model] = box
 end
+
 local function removeAllESP()
-	for _,data in pairs(espModels) do
-		if data.box then data.box:Destroy() end
-		if data.label then data.label:Destroy() end
-	end
+	for _,box in pairs(espModels) do box:Destroy() end
 	espModels = {}
 end
+
 local espBtn = Instance.new("TextButton", frame)
 espBtn.Size = UDim2.new(0,200,0,35)
 espBtn.Position = UDim2.new(0.5, -100, 0, 55)
@@ -155,35 +144,25 @@ espBtn.MouseButton1Click:Connect(function()
 	if not espEnabled then removeAllESP() end
 end)
 
--- Heartbeat ESP
-local lastCheck = 0
-local checkInterval = 3
 RunService.Heartbeat:Connect(function()
-	local now = tick()
-	if now - lastCheck < checkInterval then return end
-	lastCheck = now
-	if espEnabled then
-		local midFolder = Workspace:FindFirstChild("Mid")
-		if not midFolder then return end
-		local blocksFolder = midFolder:FindFirstChild("Blocks")
-		if not blocksFolder then return end
-		for _,model in ipairs(blocksFolder:GetChildren()) do
-			if model:IsA("Model") then
-				local rarity = model:GetAttribute("Rarity")
-				local name = model:GetAttribute("Name")
-				if rarity and name and rarityColors[rarity] then
-					local part = model:FindFirstChild("Top") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-					if part then createESP(model, part, rarity, name) end
-				end
-				model.AncestryChanged:Connect(function(_,parent)
-					if not parent then removeAllESP() end
-				end)
+	if not espEnabled then return end
+	local mid = Workspace:FindFirstChild("Mid")
+	if not mid then return end
+	local blocks = mid:FindFirstChild("Blocks")
+	if not blocks then return end
+
+	for _, model in ipairs(blocks:GetChildren()) do
+		if model:IsA("Model") then
+			local rarity = model:GetAttribute("Rarity")
+			if rarityColors[rarity] then
+				local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+				if part then createESP(model, part, rarity) end
 			end
 		end
 	end
 end)
 
--- ====================== Save/Warp ======================
+-- ====================== Save/Warp ✅ Spawn Saved! ======================
 local savedCFrame
 local saveBtn = Instance.new("TextButton", frame)
 saveBtn.Size = UDim2.new(0,200,0,35)
@@ -195,7 +174,13 @@ saveBtn.MouseButton1Click:Connect(function()
 	local character = Player.Character
 	if character then
 		local hrp = character:FindFirstChild("HumanoidRootPart")
-		if hrp then savedCFrame = hrp.CFrame end
+		if hrp then
+			savedCFrame = hrp.CFrame
+			saveBtn.Text = "✅ Spawn Saved!"
+			task.delay(1.2, function()
+				saveBtn.Text = "Save Spawn"
+			end)
+		end
 	end
 end)
 
@@ -280,4 +265,4 @@ Workspace.DescendantAdded:Connect(function(inst)
 	task.defer(tryAlert, inst)
 end)
 
-print("✅ Script Loaded: XRay Updated + ESP Original + Prismatic Alert ✅")
+print("✅ Script Loaded: XRay Updated + ESP Original + Prismatic Alert + Spawn Saved! ✅")
