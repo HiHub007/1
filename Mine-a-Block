@@ -104,85 +104,55 @@ xrayBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ====================== ESP ======================
+local espEnabled = true
+local espModels = {}
 local rarityColors = {
-    ["Rare"] = Color3.fromRGB(0,255,0),
-    ["Legendary"] = Color3.fromRGB(255,215,0),
-    ["Mythic"] = Color3.fromRGB(148,0,211),
-    ["Divine"] = Color3.fromRGB(0,191,255)
+	["Legendary"] = Color3.fromRGB(193,190,66),
+	["Mythic"] = Color3.fromRGB(255,0,0),
+	["Divine"] = Color3.fromRGB(207,96,36)
 }
-
--- สร้าง ESP + ชื่อ
 local function createESP(model, part, rarity, name)
-    if espModels[model] then return end
-    if not part then return end
+	if espModels[model] then return end
+	if not part then return end
+	local box = Instance.new("BoxHandleAdornment", part)
+	box.Adornee = part
+	box.Size = part.Size + Vector3.new(0.1,0.1,0.1)
+	box.Transparency = 0.75
+	box.AlwaysOnTop = true
+	box.Color3 = rarityColors[rarity] or part.Color
 
-    -- Box ESP
-    local box = Instance.new("BoxHandleAdornment")
-    box.Adornee = part
-    box.Size = part.Size + Vector3.new(0.1,0.1,0.1)
-    box.Transparency = 0.3
-    box.AlwaysOnTop = true
-    box.Color3 = rarityColors[rarity] or part.Color
-    box.Parent = part
+	local billboard = Instance.new("BillboardGui", part)
+	billboard.Size = UDim2.new(0,90,0,25)
+	billboard.Adornee = part
+	billboard.AlwaysOnTop = true
 
-    -- ชื่อเหนือบล็อก
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0,100,0,30)
-    billboard.Adornee = part
-    billboard.AlwaysOnTop = true
-    billboard.Parent = part
+	local label = Instance.new("TextLabel", billboard)
+	label.Size = UDim2.new(1,0,1,0)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = rarityColors[rarity] or Color3.new(1,1,1)
+	label.TextStrokeTransparency = 0
+	label.Text = name or "Unknown"
+	label.TextScaled = true
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1,0,1,0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = rarityColors[rarity] or Color3.new(1,1,1)
-    label.TextStrokeTransparency = 0
-    label.Text = name or "Unknown"
-    label.TextScaled = true
-    label.Parent = billboard
-
-    espModels[model] = {box = box, label = label}
+	espModels[model] = {box=box,label=label}
 end
-
-local function removeESP(model)
-    if espModels[model] then
-        if espModels[model].box then espModels[model].box:Destroy() end
-        if espModels[model].label then espModels[model].label:Destroy() end
-        espModels[model] = nil
-    end
+local function removeAllESP()
+	for _,data in pairs(espModels) do
+		if data.box then data.box:Destroy() end
+		if data.label then data.label:Destroy() end
+	end
+	espModels = {}
 end
-
--- ตรวจทีละ 3 วินาที
-local lastCheck = 0
-local checkInterval = 3
-
-RunService.Heartbeat:Connect(function()
-    if not espEnabled then return end
-    local now = tick()
-    if now - lastCheck < checkInterval then return end
-    lastCheck = now
-
-    local midFolder = Workspace:FindFirstChild("Mid")
-    if not midFolder then return end
-    local blocksFolder = midFolder:FindFirstChild("Blocks")
-    if not blocksFolder then return end
-
-    for _, model in ipairs(blocksFolder:GetChildren()) do
-        if model:IsA("Model") then
-            local rarity = model:GetAttribute("Rarity")
-            local name = model:GetAttribute("Name")
-            if rarity and name and rarityColors[rarity] then
-                local part = model:FindFirstChild("Top") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-                if part then
-                    createESP(model, part, rarity, name)
-                end
-            end
-
-            model.AncestryChanged:Connect(function(_, parent)
-                if not parent then removeESP(model) end
-            end)
-        end
-    end
+local espBtn = Instance.new("TextButton", frame)
+espBtn.Size = UDim2.new(0,200,0,35)
+espBtn.Position = UDim2.new(0.5, -100, 0, 55)
+espBtn.Text = "ESP: ON"
+espBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+espBtn.TextColor3 = Color3.fromRGB(255,255,255)
+espBtn.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espBtn.Text = "ESP: "..(espEnabled and "ON" or "OFF")
+	if not espEnabled then removeAllESP() end
 end)
 
 -- ====================== Save/Warp ✅ Spawn Saved! ======================
